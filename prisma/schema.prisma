@@ -1,0 +1,23 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      ="postgresql://postgres:admin@localhost:5432/comercio?schema=public"
+}
+
+//Modelo de usuario
+model User {
+  id            Int      @id @default(autoincrement())
+  username      String   @unique
+  telefono      String?
+  correo        String   @unique
+  password      String
+  isActive      Boolean? @default(true)
+  rol           Int? @default(1)
+  refreshToken  String?
+
+  @@map("user")
+}
+

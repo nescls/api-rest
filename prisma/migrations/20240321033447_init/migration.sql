@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "user" ALTER COLUMN "isActive" DROP NOT NULL,
+ALTER COLUMN "isActive" SET DEFAULT true,
+ALTER COLUMN "rol" DROP NOT NULL;
