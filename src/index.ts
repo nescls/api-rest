@@ -3,11 +3,16 @@ import express from 'express'
 import cors from 'cors'
 import corsOpciones from '../config/corsOpciones'
 import userRouter from '../routes/user'
+import errorHandlerMiddleware from '../controllers/middleware/errorHandleMiddleware'
+
 const prisma = new PrismaClient()
 const app = express()
 
-app.use(express.json())
-app.use(cors(corsOpciones))
+app.use(express.json());
+
+app.use(cors(corsOpciones)); //Rutas origenes permitidas
+
+app.use(errorHandlerMiddleware); //Middleware para el manejo de errores
 
 app.use('/users', userRouter);
 /*

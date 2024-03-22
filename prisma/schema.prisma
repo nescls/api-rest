@@ -12,11 +12,13 @@ model User {
   id            Int      @id @default(autoincrement())
   username      String   @unique
   telefono      String?
+  direccion     String?
   correo        String   @unique
   password      String
   isActive      Boolean? @default(true)
   rol           Int? @default(1)
   refreshToken  String?
+  deletedAt DateTime?
 
   @@map("user")
 }
