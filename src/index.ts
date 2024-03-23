@@ -1,9 +1,10 @@
 import { Prisma, PrismaClient } from '@prisma/client'
 import express from 'express'
 import cors from 'cors'
-import corsOpciones from '../config/corsOpciones'
-import userRouter from '../routes/user'
-import errorHandlerMiddleware from '../controllers/middleware/errorHandleMiddleware'
+import corsOpciones from './config/corsOpciones'
+import userRouter from './routes/user'
+import errorHandlerMiddleware from './controllers/middleware/errorHandleMiddleware'
+import authRouter from './routes/auth'
 
 const prisma = new PrismaClient()
 const app = express()
@@ -12,9 +13,9 @@ app.use(express.json());
 
 app.use(cors(corsOpciones)); //Rutas origenes permitidas
 
-app.use(errorHandlerMiddleware); //Middleware para el manejo de errores
-
 app.use('/users', userRouter);
+
+app.use('/auth', authRouter);
 /*
 app.post(`/signup`, async (req, res) => {
   const { username , telefono, correo, password } = req.body
