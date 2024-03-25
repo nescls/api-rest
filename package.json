@@ -11,6 +11,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.18.3",
+    "helmet": "^7.1.0",
     "uuid": "^8.3.2",
     "winston": "^3.12.0",
     "winston-daily-rotate-file": "^5.0.0"
@@ -28,6 +29,7 @@
     "typescript": "5.4.2"
   },
   "prisma": {
-    "seed": "ts-node prisma/seed.ts"
+    "seed": "ts-node src/prisma/seed.ts",
+    "schema": "src/prisma/schema.prisma"
   }
 }

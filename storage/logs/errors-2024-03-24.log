@@ -1,0 +1,2 @@
+{"clientVersion":"5.11.0","code":"P2025","level":"error","meta":{"cause":"Record to update not found.","modelName":"Orden"},"name":"PrismaClientKnownRequestError","timestamp":"2024-03-24 22:21:39"}
+{"clientVersion":"5.11.0","code":"P2025","level":"error","meta":{"cause":"Record to update not found.","modelName":"Orden"},"name":"PrismaClientKnownRequestError","timestamp":"2024-03-24 22:23:25"}

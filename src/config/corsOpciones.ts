@@ -1,15 +1,10 @@
 import origenesPermitidos from './origenesPermitidos'
 
-const corsOpciones: any = {
-    origin: (origin: string, callback: (err: Error | null, allow?: boolean) => void) => {
-      console.log(origin);
-      if (origenesPermitidos.some((origenesPermitidos) => origenesPermitidos === origin) || !origin) {
-        callback(null, true);
-      } else {
-        callback(new Error('No permitido por cors'));
-      }
-    },
-    optionsSuccessStatus: 200,
-  };
+const corsOpciones = {
+  origin: origenesPermitidos, 
+  credentials: true, 
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  methods: 'GET,HEAD,OPTIONS,PUT,PATCH,POST,DELETE',
+};
   
   export default corsOpciones;

@@ -11,50 +11,51 @@ const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET || 'default';
 
 // Controlador para login
     async function handleLogin(req: Request, res: Response) {
-        const { username, password } = req.body;
+        const { username, correo, password } = req.body;
 
         try {
-            if (!username || !password) {
-                return res.status(400).json({ message: 'Username y password son requeridos.' });
+            if ((!username && !correo) || !password) {
+                return res.status(400).json({ message: 'Username/Correo y password son requeridos.' });
             }
 
-
-            // Validacion del usuario
-            const foundUser = await prisma.user.findUnique({
-                where: { username: username },
+            // Validación del usuario
+            const usuario = await prisma.user.findFirst({
+                where: {
+                    OR: [
+                      { username },
+                      { correo },
+                    ],
+                  },
             });
 
-            if (!foundUser) {
-                return res.sendStatus(401); // Unauthorized
+            if (!usuario) {
+                return res.status(401).json({ message: "Credenciales inválidas"});; // Unauthorized
             }
 
-            const match = await bcrypt.compare(password, foundUser.password);
+            const match = await bcrypt.compare(password, usuario.password);
             if (match) {
-                const role = foundUser.rol;
-                console.log(refreshTokenSecret);
                 // Crear token JWTs
                 const accessToken = jwt.sign(
                     {
                         UserInfo: {
-                            id: foundUser.id,
-                            username: foundUser.username,
-                            role: foundUser.rol,
+                            id: usuario.id,
+                            username: usuario.username,
+                            role: usuario.rol,
                         },
                     },
                     refreshTokenSecret,
                     { expiresIn: '1d' }
                 );
-                console.log(accessToken);
-                
+
                 const refreshToken = jwt.sign(
-                    { username: foundUser.username },
+                    { username: usuario.username },
                     refreshTokenSecret,
                     { expiresIn: '1d' }
                 );
 
                 // Guardado del token
                 await prisma.user.update({
-                    where: { id: foundUser.id },
+                    where: { id: usuario.id },
                     data: { refreshToken },
                 });
 
@@ -65,13 +66,13 @@ const refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET || 'default';
                     maxAge: 24 * 60 * 60 * 1000,
                 });
 
-                res.json({ accessToken });
+                return res.json({ accessToken });
             } else {
-                res.sendStatus(401).json({ message: "Credenciales inválidas"});
+                return res.sendStatus(401).json({ message: "Credenciales inválidas"});
             }
         } catch (error) {
             console.error(error);
-            res.status(500).json({ message: 'Error interno del servidor' });
+            return res.status(500).json({ message: 'Error interno del servidor' });
         }
     }
 

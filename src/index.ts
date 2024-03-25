@@ -5,9 +5,20 @@ import corsOpciones from './config/corsOpciones'
 import userRouter from './routes/user'
 import errorHandlerMiddleware from './controllers/middleware/errorHandleMiddleware'
 import authRouter from './routes/auth'
+import ordenesRouter from './routes/ordenes'
+import productosRouter from './routes/productos'
+import helmet from 'helmet';
 
 const prisma = new PrismaClient()
-const app = express()
+
+const app = express();
+
+const dotenv = require('dotenv');
+dotenv.config();
+
+const puerto = process.env.PUERTO || 3000;
+
+app.use(helmet());
 
 app.use(express.json());
 
@@ -16,41 +27,12 @@ app.use(cors(corsOpciones)); //Rutas origenes permitidas
 app.use('/users', userRouter);
 
 app.use('/auth', authRouter);
-/*
-app.post(`/signup`, async (req, res) => {
-  const { username , telefono, correo, password } = req.body
 
-  const result = await prisma.user.create({
-    data: {
-      username,
-      telefono,
-      correo,
-      password,
-    },
-  })
-  res.json(result)
-})*/
+app.use('/ordenes', ordenesRouter);
 
-app.get('/users', async (req, res) => {
-  const users = await prisma.user.findMany()
-  res.json(users)
-})
+app.use('/productos', productosRouter)
 
-app.get('/user/:id/drafts', async (req, res) => {
-  const { id } = req.params
-
-  const drafts = await prisma.user
-    .findUnique({
-      where: {
-        id: Number(id),
-      },
-    })
-
-  res.json(drafts)
-})
-
-const server = app.listen(3000, () =>
+const server = app.listen(puerto, () =>
   console.log(`
-🚀 Server ready at: http://localhost:3000
-⭐️ See sample requests: http://pris.ly/e/ts/rest-express#3-using-the-rest-api`),
+  Servidor escuchando a la ruta: http://localhost:${puerto}`),
 )

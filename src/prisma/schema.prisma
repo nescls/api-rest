@@ -18,8 +18,65 @@ model User {
   isActive      Boolean? @default(true)
   rol           Int? @default(1)
   refreshToken  String?
+  createdAt    DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt       @db.Timestamptz(6)
   deletedAt DateTime?
 
   @@map("user")
+
+  ordenes Orden[] 
 }
 
+model Producto {
+  id          Int      @id @default(autoincrement())
+  nombre     String   @unique
+  descripcion String
+  precio     Float
+  stock  Int  
+  isActive    Boolean @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now())
+  deletedAt  DateTime?
+
+  ordenProductos OrdenProductos[] 
+}
+
+model Orden {
+  id          Int      @id @default(autoincrement())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      Int
+  precioTotal  Float
+  direccion   String?
+  tipoOrden   TipoOrden
+  estadoOrden EstadoOrden?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now())
+  deletedAt  DateTime?
+
+  ordenProductos OrdenProductos[] 
+}
+
+enum TipoOrden {
+  pickup
+  delivery
+}
+enum EstadoOrden {
+  PENDIENTE
+  EN_PROCESO
+  FINALIZADO
+  CANCELADO
+}
+
+model OrdenProductos {
+   id          Int      @id @default(autoincrement())
+  ordenId     Int      
+  productoId   Int      
+  cantidad     Int
+  precioUnd   Float
+  precioProductos Float
+
+  @@unique ([ordenId, productoId])
+
+  orden Orden  @relation(fields: [ordenId], references: [id])
+  producto Producto @relation(fields: [productoId], references: [id])
+}

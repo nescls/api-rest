@@ -26,7 +26,7 @@ const verifyJWT = (req: ExtendedRequest, res: Response, next: NextFunction) => {
     const userId = decoded.UserInfo.id;
     const rol = decoded.UserInfo.role; 
 
-    // Se agrega la información del usuario del token para el manejo de validaciones
+    // Se agrega la información del usuario del token para el manejo de validaciónes
     req.user = { id: userId, rol };
 
 

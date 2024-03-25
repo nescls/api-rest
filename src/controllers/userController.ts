@@ -1,13 +1,18 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, User } from '@prisma/client';
 import { Request, Response } from 'express';
 import * as bcrypt from 'bcrypt';
 import { ExtendedRequest } from '../common/types';
+import { errorLogger } from '../config/loggerConfig';
 
 const prisma = new PrismaClient();
 
-// Función para registrar un nuevo usuario
-async function registro(req: Request, res: Response) {
-  const { username, telefono, correo, password } = req.body;
+// Función para registrar un nuevo usuario o creacion de usuario por parte del administrativo
+async function registro(req: ExtendedRequest, res: Response) {
+  const { username, telefono, direccion, correo, password, rol } = req.body; //
+
+  if (rol && req.user?.rol != 2) {
+    return res.status(401).json({ message: 'No autorizado, solo administradores pueden crear usuarios con roles.' });
+  }
 
   // Validación de campos obligatorios
   if (!username || !correo || !password) {
@@ -15,7 +20,6 @@ async function registro(req: Request, res: Response) {
   }
 
   const hashedPwd = await bcrypt.hash(password, 10); // Contraseña encriptada
-
   try {
     // Buscar usuario existente por nombre de usuario o correo electrónico
     const usuarioExistente = await prisma.user.findFirst({
@@ -40,24 +44,115 @@ async function registro(req: Request, res: Response) {
         telefono,
         correo,
         password: hashedPwd,
+        direccion,
+        rol
       },
     });
 
-    res.json(newUser); // Regresar información del usuario creado
+    res.status(201).json(newUser); // Regresar información del usuario creado
   } catch (error) {
-    console.error(error);
+    errorLogger.error(error);
     return res.status(500).json({ message: 'Ocurrió un error durante el registro. Intente más tarde.' });
   }
 }
 
+
+// Función para obtener todos los usuarios
+async function getAllUsers(req: Request, res: Response) {
+  const query = req.query
+  const page = Number(req.query.page) || 1;
+  const pageSize = Number(req.params.pageSize) || 10;
+
+  try {
+    const opcionesFiltros = Object.keys(prisma.user.fields);
+    const filtrosRequest = Object.fromEntries(
+        Object.entries(query)
+            .filter(([key]) => opcionesFiltros.includes(key)) // Filtro para las llaves compartidas
+    );
+
+    const users = await prisma.user.findMany({
+      // Opcionalmente, puedes filtrar o seleccionar campos específicos aquí
+      where: {
+        ...filtrosRequest
+      },
+      select: {
+        id: true,
+        username: true,
+        telefono: true,
+        direccion: true,
+        correo: true,
+        createdAt: true,
+        deletedAt: true,
+        isActive: true,
+        rol: true,
+        updatedAt: true,
+      },
+      take: pageSize,
+      skip: (page - 1) * pageSize,
+    });
+
+    return res.status(200).json({ users });
+  } catch (error) {
+    errorLogger.error(error);
+    return res.status(500).json({ error: 'Error del servidor' });
+  }
+}
+
+
+// Función para obtener un usuario por ID
+async function getUserById(req: ExtendedRequest, res: Response) {
+  const { id } = req.params;
+
+  // Validación de campo obligatorio
+  if (!id) {
+    return res.status(400).json({ message: 'Falta el ID del usuario.' });
+  }
+
+  /*solo se permite visualizar si el rol es administrador o el mismo usuario esta realizando la consulta,
+ se podria realizar un middleware que realice esta validación */
+  if (id != req.user?.id && req.user?.rol != 2) {
+    return res.status(401).json({ message: 'No autorizado' });
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: Number(id) },
+      select: {
+        id: true,
+        username: true,
+        telefono: true,
+        direccion: true,
+        correo: true,
+        createdAt: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    return res.status(200).json({ user });
+  } catch (error) {
+    errorLogger.error(error);
+    return res.status(500).json({ error: 'Error del servidor' });
+  }
+}
+
+
 // Función para editar la información de un usuario
 async function editUser(req: ExtendedRequest, res: Response) {
-  const { username, telefono, correo } = req.body; // Datos del usuario a actualizar
-  const { id } = req.params; // ID del usuario
+  const user = req.body as User;
+  const { id } = req.params;
 
-  // Validación de campos obligatorios
-  if (!username || !telefono || !correo) {
-    return res.status(400).json({ message: 'Campos requeridos faltantes.' });
+  /*solo se permite modificar si el rol es administrador o el mismo usuario esta realizando la modificación,
+   se podria realizar un middleware que realice esta validación y pasar los roles permitidos que pueden modificar usuarios ajenos */
+  if (id != req.user?.id && req.user?.rol != 2) {
+    return res.status(401).json({ message: 'No autorizado' });
+  }
+
+
+  if (user.rol && req.user?.rol != 2) {
+    return res.status(401).json({ message: 'No autorizado, solo administradores pueden modificar roles de usuarios.' });
   }
 
   try {
@@ -65,9 +160,17 @@ async function editUser(req: ExtendedRequest, res: Response) {
     const updatedUser = await prisma.user.update({
       where: { id: Number(id) }, // Asegurarse de que 'id' sea un número
       data: {
-        username,
-        telefono,
-        correo,
+        correo: user.correo,
+        direccion: user.direccion,
+        telefono: user.telefono,
+        username: user.username,
+      },
+      select: {
+        username: true,
+        telefono: true,
+        direccion: true,
+        correo: true,
+        createdAt: true,
       },
     });
 
@@ -81,10 +184,11 @@ async function editUser(req: ExtendedRequest, res: Response) {
       updatedUser,
     });
   } catch (error) {
-    console.error(error);
+    errorLogger.error(error);
     return res.status(500).json({ error: 'Error del servidor' });
   }
 }
+
 
 // Función para desactivar (borrar) un usuario
 async function deleteUser(req: ExtendedRequest, res: Response) {
@@ -94,6 +198,13 @@ async function deleteUser(req: ExtendedRequest, res: Response) {
   if (!id) {
     return res.status(400).json({ message: 'Cuerpo incompleto.' });
   }
+  
+    /*solo se permite modificar si el rol es administrador o el mismo usuario esta realizando la modificación,
+   se podria realizar un middleware que realice esta validación y pasar los roles permitidos que pueden modificar usuarios ajenos */
+   if (id != req.user?.id && req.user?.rol != 2) {
+    return res.status(401).json({ message: 'No autorizado' });
+  }
+
 
   try {
     // Desactivar el usuario y establecer marca de tiempo 'deletedAt'
@@ -103,7 +214,11 @@ async function deleteUser(req: ExtendedRequest, res: Response) {
       where: { id: Number(id) },
       data: {
         isActive: false,
-        deletedAt: now, // Establecer 'deletedAt' a la marca de tiempo actual
+        deletedAt: now, // Timestamp del eliminado del usuario
+      },
+      select: {
+        username: true,
+        isActive: true,
       },
     });
 
@@ -113,9 +228,15 @@ async function deleteUser(req: ExtendedRequest, res: Response) {
 
     return res.status(200).json({ message: 'Usuario desactivado con éxito' });
   } catch (error) {
-    console.error(error);
+    errorLogger.error(error);
     return res.status(500).json({ error: 'Error del servidor' });
   }
 }
 
-export { registro, editUser, deleteUser };
+export {
+  registro,
+  editUser,
+  deleteUser,
+  getUserById,
+  getAllUsers
+};
