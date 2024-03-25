@@ -1,5 +1,6 @@
 import {PrismaClient, Producto } from '@prisma/client';
 import { Request, Response } from 'express';
+import { errorLogger } from '../config/loggerConfig';
 
 const prisma = new PrismaClient();
 // Crear un nuevo producto
@@ -17,7 +18,7 @@ async function createProducto(req: Request, res: Response) {
         });
         return res.status(201).json(nuevoProducto);
     } catch (error) {
-        console.error(error);
+            errorLogger.error(error);
         return res.status(500).json({ error: 'Error al crear el producto' });
     }
 }
@@ -44,7 +45,7 @@ async function getAllProductos(req: Request, res: Response) {
         });
         return res.status(200).json(productos);
     } catch (error) {
-        console.error(error);
+            errorLogger.error(error);
         return res.status(500).json({ error: 'Error al obtener los productos' });
     }
 }
@@ -74,7 +75,7 @@ async function getProductoById(req: Request, res: Response) {
 
         return res.status(200).json(producto);
     } catch (error) {
-        console.error(error);
+            errorLogger.error(error);
         return res.status(500).json({ error: 'Error al obtener el producto' });
     }
 }
@@ -103,7 +104,7 @@ async function updateProducto(req: Request, res: Response) {
 
         return res.status(200).json(productoActualizado);
     } catch (error) {
-        console.error(error);
+            errorLogger.error(error);
         return res.status(500).json({ error: 'Error al actualizar el producto' });
     }
 }
@@ -136,7 +137,7 @@ async function deleteProducto(req: Request, res: Response) {
 
         return res.status(200).json({ message: 'Producto eliminado' });
     } catch (error) {
-        console.error(error);
+            errorLogger.error(error);
         return res.status(500).json({ error: 'Error al eliminar el producto' });
     }
 }

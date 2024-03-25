@@ -7,6 +7,7 @@ import { errorLogger } from '../config/loggerConfig';
 const prisma = new PrismaClient();
 
 async function createOrden(req: ExtendedRequest, res: Response) {
+    
     try {
         const { tipoOrden, productos, direccion } = req.body;
         const idUsuario = req.user?.rol != 2 ? req.user?.id : req.body.idUsuario; // Si el usuario es administrador puede generar ordenes para otros usuarios
@@ -21,13 +22,18 @@ async function createOrden(req: ExtendedRequest, res: Response) {
 
         const idsProductos = productos.map((producto: CompraProductos) => producto.id); // Extrae el id de los productos
 
-        const productosDisponibles = await prisma.producto.findMany({
+        const productosSeleccionados = await prisma.producto.findMany({
             where: {
                 id: { in: idsProductos }, // Traer el lote de productos
             },
-        });
+        }); 
 
-        const idsProductosNoDisponibles = productosDisponibles.filter(
+        const productosConCantidad = productosSeleccionados.map((producto) => {
+            const foundProduct = productos.find((pro:CompraProductos) => pro.id === producto.id);
+            return { ...producto, cantidad: foundProduct?.cantidad || 0 };
+          });
+
+        const idsProductosNoDisponibles = productosConCantidad.filter(
             (producto: Producto) => producto.stock < productos.find((producto: CompraProductos) => producto.id === producto.id).cantidad || producto.isActive == false
         );
 
@@ -37,18 +43,17 @@ async function createOrden(req: ExtendedRequest, res: Response) {
             });
         }
 
-        const ordenPedidos = productos.map((producto: CompraProductos) => ({
+        const ordenPedidos = productosConCantidad.map((producto: CompraProductos) => ({
             productoId: producto.id,
             cantidad: producto.cantidad,
             precioUnd: producto.precio,
             precioProductos: producto.precio * producto.cantidad,
         }));
 
-        const precioTotal = ordenPedidos.reduce((acc: number, ordenProductos: OrdenProductos) => {
+        const precioTotal = ordenPedidos.reduce((acc: number, ordenProductos: Record<string, any>) => {
             return acc + ordenProductos.precioProductos;
         }, 0);
 
-        // Execute all operations within a Prisma transaction
         const nuevoPedido = await prisma.$transaction(async (prisma) => {
             const createdOrden = await prisma.orden.create({
                 data: {
@@ -77,8 +82,7 @@ async function createOrden(req: ExtendedRequest, res: Response) {
 
         return res.status(201).json(nuevoPedido);
     } catch (error) {
-        console.error(error);
-        // Rollback the transaction if any error occurs
+            errorLogger.error(error);
         return res.status(500).json({ error: 'Error al crear la orden' });
     }
 }
@@ -121,7 +125,7 @@ async function getAllOrdenes(req: ExtendedRequest, res: Response) {
         });
         res.status(200).json(pedidos);
     } catch (error) {
-        console.error(error);
+            errorLogger.error(error);
         res.status(500).json({ error: 'Error al obtener los pedidos' });
     }
 }
@@ -161,7 +165,7 @@ async function getOrdenById(req: ExtendedRequest, res: Response) {
 
         return res.status(200).json(pedido);
     } catch (error) {
-        console.error(error);
+            errorLogger.error(error);
         return res.status(500).json({ error: 'Error al obtener el pedido' });
     }
 }
