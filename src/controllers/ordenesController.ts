@@ -1,4 +1,4 @@
-import { OrdenProductos, PrismaClient } from '@prisma/client';
+import {  PrismaClient } from '@prisma/client';
 import { Producto } from '@prisma/client';
 import { Request, Response } from 'express';
 import { ExtendedRequest, CompraProductos } from '../common/types'; // Interfaz posiblemente definiendo la estructura de OrdenProducto
@@ -105,9 +105,8 @@ async function getAllOrdenes(req: ExtendedRequest, res: Response) {
         const opcionesFiltros = Object.keys(prisma.orden.fields);
         const filtrosRequest = Object.fromEntries(
             Object.entries(query)
-                .filter(([key]) => opcionesFiltros.includes(key)) // Filtro para las llaves compartidas
-        );
-
+              .filter(([key]) => opcionesFiltros.includes(key))
+          );
 
         const pedidos = await prisma.orden.findMany({
             include: {
@@ -125,7 +124,7 @@ async function getAllOrdenes(req: ExtendedRequest, res: Response) {
         });
         res.status(200).json(pedidos);
     } catch (error) {
-            errorLogger.error(error);
+        errorLogger.error(error);
         res.status(500).json({ error: 'Error al obtener los pedidos' });
     }
 }

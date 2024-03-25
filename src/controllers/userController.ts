@@ -3,12 +3,33 @@ import { Request, Response } from 'express';
 import * as bcrypt from 'bcrypt';
 import { ExtendedRequest } from '../common/types';
 import { errorLogger } from '../config/loggerConfig';
-
+import { validate } from 'email-validator';
 const prisma = new PrismaClient();
 
 // Función para registrar un nuevo usuario o creacion de usuario por parte del administrativo
+
 async function registro(req: ExtendedRequest, res: Response) {
-  const { username, telefono, direccion, correo, password, rol } = req.body; //
+  const { username, telefono, direccion, correo, password, passwordConfirmation, rol } = req.body;
+
+  if (rol && req.user?.rol != 2) {
+    return res.status(401).json({ message: 'No autorizado, solo administradores pueden crear usuarios con roles.' });
+  }
+
+  if (!username || !correo || !password || !passwordConfirmation) {
+    return res.status(400).json({ message: 'Campos requeridos faltantes: nombre de usuario, correo electrónico, contraseña y confirmación de contraseña son obligatorios.' });
+  }
+
+  if (!validate(correo)) {
+    return res.status(400).json({ message: 'Correo electrónico no válido.' });
+  }
+
+  if (password !== passwordConfirmation) {
+    return res.status(400).json({ message: 'Las contraseñas no coinciden.' });
+  }
+
+  if (isNaN(telefono)) {
+    return res.status(400).json({ message: 'El número de teléfono debe contener solo números.' });
+  }
 
   if (rol && req.user?.rol != 2) {
     return res.status(401).json({ message: 'No autorizado, solo administradores pueden crear usuarios con roles.' });

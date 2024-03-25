@@ -1,2 +1,17 @@
 {"clientVersion":"5.11.0","code":"P2025","level":"error","meta":{"cause":"Record to update not found.","modelName":"Orden"},"name":"PrismaClientKnownRequestError","timestamp":"2024-03-24 22:21:39"}
 {"clientVersion":"5.11.0","code":"P2025","level":"error","meta":{"cause":"Record to update not found.","modelName":"Orden"},"name":"PrismaClientKnownRequestError","timestamp":"2024-03-24 22:23:25"}
+{"clientVersion":"5.11.0","level":"error","name":"PrismaClientValidationError","timestamp":"2024-03-24 23:06:14"}
+{"clientVersion":"5.11.0","level":"error","name":"PrismaClientValidationError","timestamp":"2024-03-24 23:06:56"}
+{"clientVersion":"5.11.0","level":"error","name":"PrismaClientValidationError","timestamp":"2024-03-24 23:27:05"}
+{"clientVersion":"5.11.0","level":"error","name":"PrismaClientValidationError","timestamp":"2024-03-24 23:27:32"}
+{"clientVersion":"5.11.0","level":"error","name":"PrismaClientValidationError","timestamp":"2024-03-24 23:31:09"}
+{"clientVersion":"5.11.0","level":"error","name":"PrismaClientValidationError","timestamp":"2024-03-24 23:32:12"}
+{"clientVersion":"5.11.0","level":"error","name":"PrismaClientValidationError","timestamp":"2024-03-24 23:33:12"}
+{"clientVersion":"5.11.0","level":"error","name":"PrismaClientValidationError","timestamp":"2024-03-24 23:33:35"}
+{"clientVersion":"5.11.0","level":"error","name":"PrismaClientValidationError","timestamp":"2024-03-24 23:34:12"}
+{"clientVersion":"5.11.0","level":"error","name":"PrismaClientValidationError","timestamp":"2024-03-24 23:35:31"}
+{"clientVersion":"5.11.0","code":"P2025","level":"error","meta":{"cause":"Record to update not found.","modelName":"Orden"},"name":"PrismaClientKnownRequestError","timestamp":"2024-03-24 23:46:54"}
+{"clientVersion":"5.11.0","level":"error","name":"PrismaClientValidationError","timestamp":"2024-03-24 23:51:54"}
+{"clientVersion":"5.11.0","level":"error","name":"PrismaClientValidationError","timestamp":"2024-03-24 23:53:07"}
+{"clientVersion":"5.11.0","level":"error","name":"PrismaClientValidationError","timestamp":"2024-03-24 23:53:18"}
+{"clientVersion":"5.11.0","level":"error","name":"PrismaClientValidationError","timestamp":"2024-03-24 23:53:49"}
