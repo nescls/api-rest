@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      ="postgresql://postgres:admin@localhost:5432/comercio?schema=public"
+  url      ="postgresql://postgres:postgres@localhost:5432/comercio?schema=public"
 }
 
 //Modelo de usuario
@@ -38,6 +38,8 @@ model Producto {
   updatedAt  DateTime @default(now())
   deletedAt  DateTime?
 
+  @@map("producto")
+
   ordenProductos OrdenProductos[] 
 }
 
@@ -52,6 +54,8 @@ model Orden {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @default(now())
   deletedAt  DateTime?
+
+  @@map("orden")
 
   ordenProductos OrdenProductos[] 
 }
@@ -76,6 +80,7 @@ model OrdenProductos {
   precioProductos Float
 
   @@unique ([ordenId, productoId])
+  @@map("ordenProductos")
 
   orden Orden  @relation(fields: [ordenId], references: [id])
   producto Producto @relation(fields: [productoId], references: [id])

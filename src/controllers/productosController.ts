@@ -1,6 +1,7 @@
 import {PrismaClient, Producto } from '@prisma/client';
 import { Request, Response } from 'express';
 import { errorLogger } from '../config/loggerConfig';
+import { ExtendedRequest } from '../common/types';
 
 const prisma = new PrismaClient();
 // Crear un nuevo producto
@@ -25,12 +26,25 @@ async function createProducto(req: Request, res: Response) {
 
 
 // Obtener todos los productos
-async function getAllProductos(req: Request, res: Response) {
-    const query = req.query;
+async function getAllProductos(req: ExtendedRequest, res: Response) {
+    const query = req.query as any;
+    const page = Number(req.query.page) || 1;
+    const pageSize = Number(req.query.pageSize) || 10;
+    
+     if (req.user?.rol != 2) { //los usuarios clientes solo podran ver los productos activos
+        query.isActive = true;
+    }
+    
     try {
+        const opcionesFiltros = Object.keys(prisma.producto.fields);//Se extraen los parametros permitidos para el filtrado del modelo
+        const filtrosRequest = Object.fromEntries(
+            Object.entries(query)
+              .filter(([key]) => opcionesFiltros.includes(key))
+          );
+        
         const productos = await prisma.producto.findMany({
             where: {
-                ...query,
+                ...filtrosRequest,
             },
             select: {
                 id:true,
@@ -41,7 +55,8 @@ async function getAllProductos(req: Request, res: Response) {
                 isActive: true,
                 createdAt: true,
             },
-
+            take: pageSize,
+            skip: (page - 1) * pageSize,
         });
         return res.status(200).json(productos);
     } catch (error) {
@@ -52,12 +67,14 @@ async function getAllProductos(req: Request, res: Response) {
 
 
 // Obtener un producto específico por ID
-async function getProductoById(req: Request, res: Response) {
+async function getProductoById(req: ExtendedRequest, res: Response) {
     const { id } = req.params;
 
     try {
+        const query = req.user?.rol != 2 ?  {isActive : true} : {};//los usuarios clientes solo podran ver los productos activos
+
         const producto = await prisma.producto.findUnique({
-            where: { id: parseInt(id) },
+            where: { id: parseInt(id), ...query },
             select: {
                 id: true,
                 nombre: true,
@@ -102,7 +119,9 @@ async function updateProducto(req: Request, res: Response) {
             return res.status(404).json({ error: 'Producto no encontrado' });
         }
 
-        return res.status(200).json(productoActualizado);
+        return res.status(200).json({
+            message: 'Producto actualizado con éxito',
+            productoActualizado});
     } catch (error) {
             errorLogger.error(error);
         return res.status(500).json({ error: 'Error al actualizar el producto' });

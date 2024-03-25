@@ -69,7 +69,7 @@ async function handleLogin(req: Request, res: Response) {
 
             return res.json({ accessToken });
         } else {
-            return res.sendStatus(401).json({ message: "Credenciales inválidas" });
+            return res.status(401).json({ message: "Credenciales inválidas" });
         }
     } catch (error) {
         errorLogger.error(error);

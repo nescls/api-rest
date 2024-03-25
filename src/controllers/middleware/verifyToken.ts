@@ -5,17 +5,14 @@ import dotenv from 'dotenv';
 import { ExtendedRequest } from '../../common/types';
 import { errorLogger } from '../../config/loggerConfig';
 
-const prisma = new PrismaClient();
-
 dotenv.config();
 
 const verifyJWT = async (req: ExtendedRequest, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.sendStatus(401);
+  if (!authHeader|| authHeader == undefined || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: 'Acceso denegado' });
   }
-
   // Extraer el token del encabezado
   const token = authHeader.split(' ')[1];
   

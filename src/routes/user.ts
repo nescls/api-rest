@@ -7,6 +7,9 @@ const userRouter = Router();
 
 userRouter.post('/registro', registro);
 
+ //Esta es la ruta a la cual los administradores podras crear usuarios con roles
+userRouter.post('/crear',[verifyJWT, verifyRoles(2)] ,registro);
+
 userRouter.get('/',  [verifyJWT, verifyRoles(2)], getAllUsers);
 
 userRouter.get('/:id', verifyJWT,getUserById);

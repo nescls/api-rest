@@ -6,7 +6,7 @@ const errorLogger = winston.createLogger({
   level: 'error', // Capturar todos los errores (error y warn)
   format: winston.format.combine(
     winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), // Marca de tiempo con formato personalizado
-    winston.format.json() // Salida en formato JSON
+    winston.format.errors({ stack: true }),
   ),
   transports: [
     new DailyRotateFile({

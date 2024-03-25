@@ -1,4 +1,9 @@
-{"clientVersion":"5.11.0","level":"error","name":"PrismaClientValidationError","timestamp":"2024-03-25 00:04:09"}
-{"clientVersion":"5.11.0","level":"error","name":"PrismaClientValidationError","timestamp":"2024-03-25 00:04:30"}
-{"clientVersion":"5.11.0","level":"error","name":"PrismaClientValidationError","timestamp":"2024-03-25 00:08:01"}
-{"clientVersion":"5.11.0","level":"error","name":"PrismaClientValidationError","timestamp":"2024-03-25 00:24:59"}
+
+Invalid `prisma.producto.update()` invocation in
+C:\Users\BTC\Desktop\api-rest\src\controllers\productosController.ts:108:59
+
+  105 const { id } = req.params;
+  106 
+  107 try {
+→ 108     const productoActualizado = await prisma.producto.update(
+Unique constraint failed on the fields: (`nombre`)

@@ -1,15 +1,12 @@
-import { Prisma, PrismaClient } from '@prisma/client'
 import express from 'express'
 import cors from 'cors'
 import corsOpciones from './config/corsOpciones'
 import userRouter from './routes/user'
-import errorHandlerMiddleware from './controllers/middleware/errorHandleMiddleware'
 import authRouter from './routes/auth'
 import ordenesRouter from './routes/ordenes'
 import productosRouter from './routes/productos'
 import helmet from 'helmet';
-
-const prisma = new PrismaClient()
+import { queryParser } from 'express-query-parser'
 
 const app = express();
 
@@ -21,6 +18,15 @@ const puerto = process.env.PUERTO || 3000;
 app.use(helmet());
 
 app.use(express.json());
+
+app.use(
+  queryParser({
+    parseNull: true,
+    parseUndefined: true,
+    parseBoolean: true,
+    parseNumber: true
+  })
+)
 
 app.use(cors(corsOpciones)); //Rutas origenes permitidas
 

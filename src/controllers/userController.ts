@@ -82,17 +82,16 @@ async function registro(req: ExtendedRequest, res: Response) {
 async function getAllUsers(req: Request, res: Response) {
   const query = req.query
   const page = Number(req.query.page) || 1;
-  const pageSize = Number(req.params.pageSize) || 10;
-
+  const pageSize = Number(req.query.pageSize) || 10;
+  
   try {
-    const opcionesFiltros = Object.keys(prisma.user.fields);
+    const opcionesFiltros = Object.keys(prisma.user.fields);//Se extraen los parametros permitidos para el filtrado del modelo
     const filtrosRequest = Object.fromEntries(
         Object.entries(query)
-            .filter(([key]) => opcionesFiltros.includes(key)) // Filtro para las llaves compartidas
+            .filter(([key]) => opcionesFiltros.includes(key)) 
     );
 
     const users = await prisma.user.findMany({
-      // Opcionalmente, puedes filtrar o seleccionar campos específicos aquí
       where: {
         ...filtrosRequest
       },
@@ -163,6 +162,7 @@ async function getUserById(req: ExtendedRequest, res: Response) {
 // Función para editar la información de un usuario
 async function editUser(req: ExtendedRequest, res: Response) {
   const user = req.body as User;
+  const {username , correo}= req.body
   const { id } = req.params;
 
   /*solo se permite modificar si el rol es administrador o el mismo usuario esta realizando la modificación,
@@ -171,12 +171,26 @@ async function editUser(req: ExtendedRequest, res: Response) {
     return res.status(401).json({ message: 'No autorizado' });
   }
 
-
   if (user.rol && req.user?.rol != 2) {
     return res.status(401).json({ message: 'No autorizado, solo administradores pueden modificar roles de usuarios.' });
   }
 
   try {
+    const usuarioExistente = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { username },
+          { correo },
+        ],
+      },
+    });
+
+    if (usuarioExistente  && usuarioExistente.id != Number(id)) {
+      const campoRepetido = usuarioExistente.username === username ? 'nombre de usuario' : 'correo electrónico'; // Campo duplicado
+      const message = `${campoRepetido} ya en uso. Ingrese un valor distinto.`;
+      return res.status(400).json({ message });
+    }
+
     // Buscar y actualizar el usuario en un solo paso con 'update'
     const updatedUser = await prisma.user.update({
       where: { id: Number(id) }, // Asegurarse de que 'id' sea un número

@@ -61,6 +61,7 @@ async function createOrden(req: ExtendedRequest, res: Response) {
                     tipoOrden,
                     estadoOrden: 'PENDIENTE',
                     precioTotal,
+                    direccion,
                     ordenProductos: { create: ordenPedidos },
                 },
                 include: { ordenProductos: true },
@@ -92,7 +93,7 @@ async function createOrden(req: ExtendedRequest, res: Response) {
 async function getAllOrdenes(req: ExtendedRequest, res: Response) {
     const query = req.query;
     const page = Number(req.query.page) || 1;
-    const pageSize = Number(req.params.pageSize) || 10;
+    const pageSize = Number(req.query.pageSize) || 10;
 
     /*Si la solicitud la realiza un usuario no administrador se agrega su id para 
     solo realizar consultas de ordenes propios, si intenta consultar un orden 
@@ -102,7 +103,7 @@ async function getAllOrdenes(req: ExtendedRequest, res: Response) {
     }
 
     try {
-        const opcionesFiltros = Object.keys(prisma.orden.fields);
+        const opcionesFiltros = Object.keys(prisma.orden.fields); //Se extraen los parametros permitidos para el filtrado del modelo
         const filtrosRequest = Object.fromEntries(
             Object.entries(query)
               .filter(([key]) => opcionesFiltros.includes(key))
@@ -194,10 +195,10 @@ async function cancelOrden(req: ExtendedRequest, res: Response) {
             include: {
                 ordenProductos: {
                     select: {
-                        cantidad: true, // Only select needed field
+                        cantidad: true,
                         producto: {
                             select: {
-                                id: true, // Only select needed field
+                                id: true, 
                             },
                         },
                     },
@@ -242,18 +243,22 @@ async function updateOrden(req: Request, res: Response) {
 
     try {
         const pedidoActualizado = await prisma.orden.update({
-            where: { id: parseInt(id) },
+            where: { id: parseInt(id),
+            estadoOrden: {in:['EN_PROCESO','PENDIENTE']} },
             data: {
                 tipoOrden,
                 estadoOrden,
+                direccion
             },
         });
-
+        
         if (!pedidoActualizado) {
-            return res.status(404).json({ error: 'Pedido no encontrado' });
+            return res.status(404).json({ error: 'Pedido no encontrado o ya fue finalizado/cancelado' });
         }
 
-        return res.status(200).json(pedidoActualizado);
+        return res.status(200).json({
+            message: 'Orden actualizado con éxito',
+            pedidoActualizado});
     } catch (error) {
         errorLogger.error(error);
         return res.status(500).json({ error: 'Error al actualizar el pedido' });
