@@ -686,3 +686,13 @@ Respuesta:
 }
 
 ```
+
+## Escalabilidad
+
+Se podría implementar el escalado horizontal con el despliegue de varias instancias de la API en contenedores, manejado por un administrador de contenedores como Kubernetes.
+
+También se podría implementar Kafka, aunque este suele ser usado para servicios de streaming, se puede implementar para el manejo y repartición de carga entre las distintas instancias de la API. Otra ventaja de Kafka es la seguridad en el envío y recepción de datos.
+
+
+
+
