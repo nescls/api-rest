@@ -693,6 +693,30 @@ Se podría implementar el escalado horizontal con el despliegue de varias instan
 
 También se podría implementar Kafka, aunque este suele ser usado para servicios de streaming, se puede implementar para el manejo y repartición de carga entre las distintas instancias de la API. Otra ventaja de Kafka es la seguridad en el envío y recepción de datos.
 
+## Dependencias y tecnologías
+
+- bcrypt: Se utiliza para generar hash de contraseñas y la comparación de contraseñas con hashes almacenados (los hashes son siempre distintos, se compara su equivalencia).
+
+- cors: Permite manejar los dominios (CORS) para que la api solo sea accesible por los dominios permitidos.
+
+- dotenv: Carga las variables de entorno desde un archivo .env.
+
+- express-query-parser: express solo convierte todos los parametros a string, se implementa express-query-parser para que estos parametros mantenga su formato original.
+
+- helmet: protege a la API de distintos tipos de de ataques comunes.
+
+- winston: Un paquete de registro para registrar mensajes de diferentes niveles, se usa para la generación de logs.
+
+- winston-daily-rotate-file: añadido para winston que genera archivos logs al rango de fecha seleccionado (en el caso de la api es diario).
+
+## Recomendaciones
+
+1. Si se espera el agregado de más modelos y controladores generar un controlador crud que reciba el modelo y genere las funciones crud, y que los demas controladores serían una extensión de este controlador. **Importante**: Tener en cuenta el punto siguiente(2) ya que si no se implementa las rutas para la búsqueda de datos se visualizarán todos los datos dispobles por modelo.
+
+2. Para tener mayor control de los datos, implemenar una lógica de campos creables, modificables y retornables. En el caso de que un crud requiera de una lógica distinta se implementa un override sobre la funcion a modificar.
+
+3. Implementar protección CSRF para evitar ataques que falsifican solicitudes del usuario
+
 
 
 
