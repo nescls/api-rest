@@ -26,6 +26,7 @@ async function handleLogin(req: Request, res: Response) {
                     { username },
                     { correo },
                 ],
+                AND:{isActive:true},
             },
         });
 

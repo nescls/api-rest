@@ -16,7 +16,7 @@ async function registro(req: ExtendedRequest, res: Response) {
   }
 
   if (!username || !correo || !password || !passwordConfirmation) {
-    return res.status(400).json({ message: 'Campos requeridos faltantes: nombre de usuario, correo electrónico, contraseña y confirmación de contraseña son obligatorios.' });
+    return res.status(400).json({ message: 'Campos requeridos: nombre de usuario, correo electrónico, contraseña y confirmación de contraseña son obligatorios.' });
   }
 
   if (!validate(correo)) {
@@ -27,17 +27,12 @@ async function registro(req: ExtendedRequest, res: Response) {
     return res.status(400).json({ message: 'Las contraseñas no coinciden.' });
   }
 
-  if (isNaN(telefono)) {
+  if (telefono && isNaN(telefono)) {
     return res.status(400).json({ message: 'El número de teléfono debe contener solo números.' });
   }
 
   if (rol && req.user?.rol != 2) {
     return res.status(401).json({ message: 'No autorizado, solo administradores pueden crear usuarios con roles.' });
-  }
-
-  // Validación de campos obligatorios
-  if (!username || !correo || !password) {
-    return res.status(400).json({ message: 'Campos requeridos faltantes: nombre de usuario, correo electrónico y contraseña son obligatorios.' });
   }
 
   const hashedPwd = await bcrypt.hash(password, 10); // Contraseña encriptada
@@ -67,6 +62,15 @@ async function registro(req: ExtendedRequest, res: Response) {
         password: hashedPwd,
         direccion,
         rol
+      },
+      select: {
+        id: true,
+        username: true,
+        telefono: true,
+        direccion: true,
+        correo: true,
+        createdAt: true,
+        isActive: true,
       },
     });
 

@@ -7,3 +7,39 @@ C:\Users\BTC\Desktop\api-rest\src\controllers\productosController.ts:108:59
   107 try {
 → 108     const productoActualizado = await prisma.producto.update(
 Unique constraint failed on the fields: (`nombre`)
+
+Invalid `prisma.producto.create()` invocation in
+C:\Users\nesto\Desktop\api-rest\src\controllers\productosController.ts:15:53
+
+  12     return res.status(400).json({ message: 'Campos requeridos:  nombre, descripcion, precio, stock.' });
+  13   }
+  14 try {
+→ 15     const nuevoProducto = await prisma.producto.create(
+Unique constraint failed on the fields: (`nombre`)
+
+Invalid `prisma.orden.update()` invocation in
+C:\Users\nesto\Desktop\api-rest\src\controllers\ordenesController.ts:245:54
+
+  242 }
+  243 
+  244 try {
+→ 245     const pedidoActualizado = await prisma.orden.update(
+An operation failed because it depends on one or more records that were required but not found. Record to update not found.
+
+Invalid `prisma.orden.update()` invocation in
+C:\Users\nesto\Desktop\api-rest\src\controllers\ordenesController.ts:245:54
+
+  242 }
+  243 
+  244 try {
+→ 245     const pedidoActualizado = await prisma.orden.update(
+An operation failed because it depends on one or more records that were required but not found. Record to update not found.
+
+Invalid `prisma.orden.update()` invocation in
+C:\Users\nesto\Desktop\api-rest\src\controllers\ordenesController.ts:264:54
+
+  261 }
+  262 
+  263 try {
+→ 264     const pedidoActualizado = await prisma.orden.update(
+An operation failed because it depends on one or more records that were required but not found. Record to update not found.

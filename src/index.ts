@@ -30,13 +30,13 @@ app.use(
 
 app.use(cors(corsOpciones)); //Rutas origenes permitidas
 
-app.use('/users', userRouter);
+app.use('/api/users', userRouter);
 
-app.use('/auth', authRouter);
+app.use('/api/auth', authRouter);
 
-app.use('/ordenes', ordenesRouter);
+app.use('/api/ordenes', ordenesRouter);
 
-app.use('/productos', productosRouter)
+app.use('/api/productos', productosRouter);
 
 const server = app.listen(puerto, () =>
   console.log(`

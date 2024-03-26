@@ -7,7 +7,24 @@ const prisma = new PrismaClient();
 // Crear un nuevo producto
 async function createProducto(req: Request, res: Response) {
     const { nombre, descripcion, precio, stock, isActive } = req.body;
+
+    if (!nombre || !descripcion || !precio || !stock || !isActive) {
+        return res.status(400).json({ message: 'Campos requeridos:  nombre, descripcion, precio, stock.' });
+      }
     try {
+        const productoExistente = await prisma.producto.findFirst({
+            where: {
+              OR: [
+                { nombre },
+              ],
+            },
+          });
+      
+          if (productoExistente) {
+            const message = `Nombre ya en uso. Ingrese un valor distinto.`;
+            return res.status(400).json({ message });
+          }
+
         const nuevoProducto = await prisma.producto.create({
             data: {
                 nombre,

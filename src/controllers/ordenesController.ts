@@ -1,4 +1,4 @@
-import {  PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { Producto } from '@prisma/client';
 import { Request, Response } from 'express';
 import { ExtendedRequest, CompraProductos } from '../common/types'; // Interfaz posiblemente definiendo la estructura de OrdenProducto
@@ -7,7 +7,7 @@ import { errorLogger } from '../config/loggerConfig';
 const prisma = new PrismaClient();
 
 async function createOrden(req: ExtendedRequest, res: Response) {
-    
+
     try {
         const { tipoOrden, productos, direccion } = req.body;
         const idUsuario = req.user?.rol != 2 ? req.user?.id : req.body.idUsuario; // Si el usuario es administrador puede generar ordenes para otros usuarios
@@ -26,12 +26,12 @@ async function createOrden(req: ExtendedRequest, res: Response) {
             where: {
                 id: { in: idsProductos }, // Traer el lote de productos
             },
-        }); 
+        });
 
         const productosConCantidad = productosSeleccionados.map((producto) => {
-            const foundProduct = productos.find((pro:CompraProductos) => pro.id === producto.id);
+            const foundProduct = productos.find((pro: CompraProductos) => pro.id === producto.id);
             return { ...producto, cantidad: foundProduct?.cantidad || 0 };
-          });
+        });
 
         const idsProductosNoDisponibles = productosConCantidad.filter(
             (producto: Producto) => producto.stock < productos.find((producto: CompraProductos) => producto.id === producto.id).cantidad || producto.isActive == false
@@ -83,7 +83,7 @@ async function createOrden(req: ExtendedRequest, res: Response) {
 
         return res.status(201).json(nuevoPedido);
     } catch (error) {
-            errorLogger.error(error);
+        errorLogger.error(error);
         return res.status(500).json({ error: 'Error al crear la orden' });
     }
 }
@@ -106,8 +106,8 @@ async function getAllOrdenes(req: ExtendedRequest, res: Response) {
         const opcionesFiltros = Object.keys(prisma.orden.fields); //Se extraen los parametros permitidos para el filtrado del modelo
         const filtrosRequest = Object.fromEntries(
             Object.entries(query)
-              .filter(([key]) => opcionesFiltros.includes(key))
-          );
+                .filter(([key]) => opcionesFiltros.includes(key))
+        );
 
         const pedidos = await prisma.orden.findMany({
             include: {
@@ -165,7 +165,7 @@ async function getOrdenById(req: ExtendedRequest, res: Response) {
 
         return res.status(200).json(pedido);
     } catch (error) {
-            errorLogger.error(error);
+        errorLogger.error(error);
         return res.status(500).json({ error: 'Error al obtener el pedido' });
     }
 }
@@ -175,22 +175,17 @@ async function getOrdenById(req: ExtendedRequest, res: Response) {
 async function cancelOrden(req: ExtendedRequest, res: Response) {
     const { id } = req.params;
 
-    const usuarioActual = req.user?.id;
-
     try {
         /*solo se permite cancelar si el rol es administrador o el mismo usuario esta realizando la modificación */
         const idUsuario = req.user?.rol != 2 ? req.user?.id : req.body.idUsuario;
-
-        const pedidoActual = await prisma.orden.update({
+        
+        const orden = await prisma.orden.findFirst({
             where: {
                 id: parseInt(id),
                 userId: idUsuario,
                 estadoOrden: {
                     notIn: ['CANCELADO', 'FINALIZADO']
-                }
-            },
-            data: {
-                estadoOrden: 'CANCELADO',
+                },
             },
             include: {
                 ordenProductos: {
@@ -198,31 +193,57 @@ async function cancelOrden(req: ExtendedRequest, res: Response) {
                         cantidad: true,
                         producto: {
                             select: {
-                                id: true, 
+                                id: true,
+                            },
+                        },
+                    },
+                }
+            }
+        });
+
+        if (!orden) {
+            return res.status(404).json({ error: 'Pedido no encontrado o ya ha sido cerrado' });
+        }
+        await prisma.$transaction(async (prisma) => {
+            await prisma.orden.update({
+                where: {
+                    id: parseInt(id),
+                    userId: idUsuario,
+                    estadoOrden: {
+                        notIn: ['CANCELADO', 'FINALIZADO']
+                    }
+                },
+                data: {
+                    estadoOrden: 'CANCELADO',
+                },
+                include: {
+                    ordenProductos: {
+                        select: {
+                            cantidad: true,
+                            producto: {
+                                select: {
+                                    id: true,
+                                },
                             },
                         },
                     },
                 },
-            },
-        }).catch((error) => {
-            errorLogger.error(error);
-        });
-
-        if (!pedidoActual) {
-            return res.status(404).json({ error: 'Pedido no encontrado o ya ha sido cerrado' });
-        }
-
-        // Update product availability using retrieved data
-        for (const item of pedidoActual.ordenProductos) {
-            await prisma.producto.update({
-                where: { id: item.producto.id },
-                data: {
-                    stock: {
-                        increment: item.cantidad,
-                    },
-                },
+            }).catch((error) => {
+                errorLogger.error(error);
             });
-        }
+
+            // Update product availability using retrieved data
+            for (const item of orden.ordenProductos) {
+                await prisma.producto.update({
+                    where: { id: item.producto.id },
+                    data: {
+                        stock: {
+                            increment: item.cantidad,
+                        },
+                    },
+                });
+            }
+        });
 
         return res.status(200).json({ message: 'Pedido cancelado' });
     } catch (error) {
@@ -242,23 +263,37 @@ async function updateOrden(req: Request, res: Response) {
     }
 
     try {
+        const orden = await prisma.orden.findFirst({
+            where: {
+                id: parseInt(id),
+                estadoOrden: {
+                    notIn: ['CANCELADO', 'FINALIZADO']
+                },
+            },
+        });
+        if (!orden) {
+            return res.status(404).json({ error: 'Pedido no encontrado o ya ha sido cerrado' });
+        }
         const pedidoActualizado = await prisma.orden.update({
-            where: { id: parseInt(id),
-            estadoOrden: {in:['EN_PROCESO','PENDIENTE']} },
+            where: {
+                id: parseInt(id),
+                estadoOrden: { in: ['EN_PROCESO', 'PENDIENTE'] }
+            },
             data: {
                 tipoOrden,
                 estadoOrden,
                 direccion
             },
         });
-        
+
         if (!pedidoActualizado) {
             return res.status(404).json({ error: 'Pedido no encontrado o ya fue finalizado/cancelado' });
         }
 
         return res.status(200).json({
             message: 'Orden actualizado con éxito',
-            pedidoActualizado});
+            pedidoActualizado
+        });
     } catch (error) {
         errorLogger.error(error);
         return res.status(500).json({ error: 'Error al actualizar el pedido' });
