@@ -55,7 +55,7 @@ El servidor correra `http://localhost:` y el puerto asignado en el archivo .env.
 
 
 ```http
-  POST /api/user/registro
+  POST /api/users/registro
 ```
 
 | Parametros | Tipo     | Descripción                |
@@ -96,7 +96,7 @@ Respuesta:
 Para esta ruta requiere token y es solo accesible por el rol de administrador
 
 ```http
-  POST /api/user/crear
+  POST /api/users/crear
 ```
 
 | Parametros | Tipo     | Descripción                |
@@ -107,6 +107,7 @@ Para esta ruta requiere token y es solo accesible por el rol de administrador
 | correo | string |**Requerido.** Correo electrónico |
 | password | string | **Requerido.** Contraseña |
 | passwordConfirmation | string | **Requerido.** Confirmación de contraseña |
+| rol | int | Asignacion de rol |
 
 Ejemplo: 
 
@@ -137,7 +138,7 @@ Respuesta:
 Para esta ruta requiere token y es solo accesible por el rol de administrador
 
 ```http
-  GET /api/user/
+  GET /api/users/
 ```
 
 | Parámetro | Tipo | Descripción |
@@ -164,7 +165,7 @@ Listado de usuarios de rol 1 (Clientes)
 Para esta ruta requiere token y el usuario Cliente solo puede acceder a su propio id de usuario, el adminsitrador tiene acceso a todos los usarios
 
 ```http
-  GET /api/user/:id
+  GET /api/users/:id
 ```
 
 
@@ -193,7 +194,7 @@ Respuesta:
 Para esta ruta requiere token y  el usuario Cliente solo puede modificar a su propio id de usuario, el adminsitrador tiene acceso a todos los usarios. En el caso de los roles solo un administrador puede modificar roles en un usuario.
 
 ```http
-  PATCH /api/user/:id
+  PATCH /api/users/:id
 ```
 
 | Parametros | Tipo     | Descripción                |
@@ -235,7 +236,7 @@ Respuesta:
 Para esta ruta requiere token y el usuario Cliente solo puede borrar a su propio usuario, el adminsitrador tiene acceso a todos los usarios.
 
 ```http
-  DELETE /api/user/:id
+  DELETE /api/users/:id
 ```
 
 
@@ -639,7 +640,7 @@ Ejemplo:
 
 ```
 {
-    	tipoOrden": "delivery",
+    "tipoOrden": "delivery",
 	"estadoOrden": "PENDIENTE",
 	"direccion": "Tazon",
 }
